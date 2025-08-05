@@ -1,75 +1,170 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width, height } = Dimensions.get('window');
+
+function formatTime(sec: number) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
 
 export default function HomeScreen() {
+  // Segundo cronômetro (topo)
+  const [topSeconds, setTopSeconds] = useState(0);
+  const [topRunning, setTopRunning] = useState(false);
+  const topIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (topRunning) {
+      topIntervalRef.current = setInterval(() => {
+        setTopSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (topIntervalRef.current) {
+      clearInterval(topIntervalRef.current);
+      topIntervalRef.current = null;
+    }
+    return () => {
+      if (topIntervalRef.current) clearInterval(topIntervalRef.current);
+    };
+  }, [topRunning]);
+
+  // Cronômetro original (retângulo)
+  const [seconds, setSeconds] = useState(0);
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [running]);
+
+  const handlePress = () => {
+    if (running) {
+      setSeconds(0);
+      setRunning(false);
+    } else {
+      setSeconds(0);
+      setRunning(true);
+    }
+  };
+
+  const handleTopPress = () => {
+    setTopRunning((prev) => !prev);
+  };
+
+  const handleTopReset = () => {
+    Alert.alert(
+      'Reiniciar partida',
+      'Deseja realmente reiniciar a partida?',
+      [
+        { text: 'Não', style: 'cancel' },
+        { text: 'Sim', style: 'destructive', onPress: () => {
+            setTopSeconds(0);
+            setSeconds(0);
+            setRunning(false);
+          }
+        },
+      ]
+    );
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes test change.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <View style={styles.topTimerContainer}>
+        <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
+          <IconSymbol
+            name={topRunning ? 'pause.fill' : 'play.fill'}
+            size={32}
+            color="#fff"
+          />
+        </TouchableOpacity>
+        <Text style={styles.topTimerText}>{formatTime(topSeconds)}</Text>
+        <TouchableOpacity style={styles.topResetButton} onPress={handleTopReset}>
+          <IconSymbol name="restart.circle.fill" size={32} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.roundedBox}>
+        <Text style={styles.timerText}>{seconds}</Text>
+      </View>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: running ? '#e20000ff' : '#43a047' }]}
+        onPress={handlePress}
+      >
+        <Text style={styles.buttonText}>{running ? 'Zerar' : 'Iniciar'}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  topTimerContainer: {
     position: 'absolute',
+    top: 48,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  topTimerText: {
+    fontSize: 48,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginRight: 16,
+  },
+  topPausePlayButton: {
+    marginRight: 8,
+  },
+  topResetButton: {
+    marginLeft: 8,
+  },
+  topButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  roundedBox: {
+    width: width * 0.9,
+    height: height * 0.4,
+    backgroundColor: 'rgba(71, 71, 71, 0.4)',
+    borderRadius: 500,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timerText: {
+    fontSize: 172,
+    color: '#e20000ff',
+    fontWeight: 'bold',
+  },
+  button: {
+    position: 'absolute',
+    left: 24,
+    bottom: 32,
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    opacity: 0.8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

@@ -34,7 +34,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="config"
         options={{
           title: 'Configurações',
           tabBarIcon: ({ color }) => <IconSymbol size={18} name="gear.circle.fill" color={color} />,

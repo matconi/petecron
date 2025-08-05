@@ -16,8 +16,9 @@ type IconSymbolName = keyof typeof MAPPING;
 const MAPPING = {
   'timer.circle.fill': 'timer',
   'gear.circle.fill': 'edit',
-  'chevron.left.forwardslash.chevron.right': 'code',
-  'chevron.right': 'chevron-right',
+  'pause.fill': 'pause',
+  'play.fill': 'play-arrow',
+  'restart.circle.fill': 'restart-alt'
 } as IconMapping;
 
 /**
