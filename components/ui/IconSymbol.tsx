@@ -18,7 +18,8 @@ const MAPPING = {
   'gear.circle.fill': 'edit',
   'pause.fill': 'pause',
   'play.fill': 'play-arrow',
-  'restart.circle.fill': 'restart-alt'
+  'restart.circle.fill': 'restart-alt',
+  'chevron.right': 'chevron-right'
 } as IconMapping;
 
 /**

@@ -1,3 +1,4 @@
+import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -80,7 +81,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <View style={styles.topTimerContainer}>
         <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
           <IconSymbol
@@ -103,7 +104,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonText}>{running ? 'Zerar' : 'Iniciar'}</Text>
       </TouchableOpacity>
-    </View>
+    </ThemedView>
   );
 }
 
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   topTimerContainer: {
     position: 'absolute',
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerText: {
-    fontSize: 172,
+    fontSize: 208,
     color: '#e20000ff',
     fontWeight: 'bold',
   },
