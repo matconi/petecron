@@ -18,11 +18,20 @@ export default function HomeScreen() {
   const [topSeconds, setTopSeconds] = useState(0);
   const [topRunning, setTopRunning] = useState(false);
   const topIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
+  const [tempoPartida, setTempoPartida] = useState(600);
+  
   useEffect(() => {
     if (topRunning) {
       topIntervalRef.current = setInterval(() => {
-        setTopSeconds((prev) => prev + 1);
+        setTopSeconds((prev) => {
+          if (prev === tempoPartida) {
+            clearInterval(topIntervalRef.current!);
+            topIntervalRef.current = null;
+            setTopRunning(false);
+            return prev;
+          }
+          return prev + 1;
+        });
       }, 1000);
     } else if (topIntervalRef.current) {
       clearInterval(topIntervalRef.current);
@@ -31,7 +40,7 @@ export default function HomeScreen() {
     return () => {
       if (topIntervalRef.current) clearInterval(topIntervalRef.current);
     };
-  }, [topRunning]);
+  }, [topRunning, tempoPartida]);
 
   // Cronômetro original (retângulo)
   const [seconds, setSeconds] = useState(0);
@@ -48,11 +57,13 @@ export default function HomeScreen() {
         try {
           const ponto = await AsyncStorage.getItem('tempoPonto');
           const value = ponto ? Number(ponto) : 0;
+          const partida = await AsyncStorage.getItem('tempoPartida');
+          const tempoPartida = ponto ? Number(partida) : 0;
           const patidaAtivo = await AsyncStorage.getItem('patidaAtivo');
           if (isActive) {
             setSeconds(value);
             setInitialSeconds(value);
-            
+            setTempoPartida(tempoPartida);
             setPatidaAtivo(patidaAtivo === 'true')
             if (patidaAtivo === 'false') {
               setTopRunning(false);
@@ -109,6 +120,7 @@ export default function HomeScreen() {
         { text: 'Não', style: 'cancel' },
         { text: 'Sim', style: 'destructive', onPress: async () => {
             setTopSeconds(0);
+            setTopRunning(false);
             try {
               const ponto = await AsyncStorage.getItem('tempoPonto');
               const value = ponto ? Number(ponto) : 0;
@@ -128,7 +140,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       {patidaAtivo && <View style={styles.topTimerContainer}> 
-        {!running && <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
+        {!running && tempoPartida !== topSeconds && <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
           <IconSymbol
             name={topRunning ? 'pause.fill' : 'play.fill'}
             size={32}

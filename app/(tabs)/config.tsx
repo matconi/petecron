@@ -64,12 +64,12 @@ export default function TabTwoScreen() {
               onValueChange={handlePicker}
               style={{color: '#fff', width: 200 }}
             >
-              <Picker.Item label="5 min" value={5} />
-              <Picker.Item label="8 min" value={8} />
-              <Picker.Item label="10 min" value={10} />
-              <Picker.Item label="12 min" value={12} />
-              <Picker.Item label="15 min" value={15} />
-              <Picker.Item label="20 min" value={20} />
+              <Picker.Item label="5 min" value={300} />
+              <Picker.Item label="8 min" value={480} />
+              <Picker.Item label="10 min" value={600} />
+              <Picker.Item label="12 min" value={720} />
+              <Picker.Item label="15 min" value={900} />
+              <Picker.Item label="20 min" value={1200} />
             </Picker>
           </View>
         </Collapsible>
