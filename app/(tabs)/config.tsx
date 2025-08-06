@@ -27,7 +27,7 @@ export default function TabTwoScreen() {
 
   const handleSwitch = async (value: boolean) => {
     setIsEnabled(value);
-    await AsyncStorage.setItem('habilitado', value.toString());
+    await AsyncStorage.setItem('patidaAtivo', value.toString());
   };
 
   const handlePicker = async (value: number) => {
@@ -47,8 +47,8 @@ export default function TabTwoScreen() {
       <View style={styles.topTimerContainer}>
         <Collapsible title="Tempo da Partida">
           <View style={styles.titleContainer}>
-            <ThemedText >
-              Habilitado
+            <ThemedText style={styles.textCenter}>
+              Ativo
             </ThemedText>
             <Switch
               value={isEnabled}
@@ -56,18 +56,18 @@ export default function TabTwoScreen() {
             />
           </View>
           <View style={styles.titleContainer}>
-            <ThemedText style={styles.titleContainer}>
+            <ThemedText style={styles.textCenter}>
               Tempo
             </ThemedText>
             <Picker
               selectedValue={selectedMinutes}
               onValueChange={handlePicker}
-              style={{color: '#fff', width: 200, marginLeft: 8 }}
+              style={{color: '#fff', width: 200 }}
             >
               <Picker.Item label="5 min" value={5} />
-              <Picker.Item label="8 min" value={5} />
+              <Picker.Item label="8 min" value={8} />
               <Picker.Item label="10 min" value={10} />
-              <Picker.Item label="12 min" value={5} />
+              <Picker.Item label="12 min" value={12} />
               <Picker.Item label="15 min" value={15} />
               <Picker.Item label="20 min" value={20} />
             </Picker>
@@ -118,4 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  textCenter: {
+    textAlignVertical: 'center',
+  }
 });

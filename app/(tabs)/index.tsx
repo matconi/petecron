@@ -1,5 +1,7 @@
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -35,11 +37,46 @@ export default function HomeScreen() {
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [initialSeconds, setInitialSeconds] = useState(0);
+  const [patidaAtivo, setPatidaAtivo] = useState(true);
+
+  // Buscar tempoPonto do AsyncStorage ao iniciar e ao focar a tela
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+      (async () => {
+        try {
+          const ponto = await AsyncStorage.getItem('tempoPonto');
+          const value = ponto ? Number(ponto) : 0;
+          const patidaAtivo = await AsyncStorage.getItem('patidaAtivo');
+          if (isActive) {
+            setSeconds(value);
+            setInitialSeconds(value);
+            
+            setPatidaAtivo(patidaAtivo === 'true')
+            if (patidaAtivo === 'false') {
+              setTopRunning(false);
+            }
+          }
+        } catch (e) {}
+      })();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(() => {
-        setSeconds((prev) => prev + 1);
+        setSeconds((prev) => {
+          if (prev > 0) {
+            return prev - 1;
+          }
+          setRunning(false);
+          setSeconds(initialSeconds);
+          return initialSeconds;
+        });
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -48,15 +85,15 @@ export default function HomeScreen() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running]);
+  }, [running, initialSeconds]);
 
   const handlePress = () => {
     if (running) {
-      setSeconds(0);
+      setSeconds(initialSeconds);
       setRunning(false);
     } else {
-      setSeconds(0);
       setRunning(true);
+      setTopRunning(true);
     }
   };
 
@@ -67,12 +104,20 @@ export default function HomeScreen() {
   const handleTopReset = () => {
     Alert.alert(
       'Reiniciar partida',
-      'Deseja realmente reiniciar a partida?',
+      'Tem certeza que deseja reiniciar a partida?',
       [
         { text: 'Não', style: 'cancel' },
-        { text: 'Sim', style: 'destructive', onPress: () => {
+        { text: 'Sim', style: 'destructive', onPress: async () => {
             setTopSeconds(0);
-            setSeconds(0);
+            try {
+              const ponto = await AsyncStorage.getItem('tempoPonto');
+              const value = ponto ? Number(ponto) : 0;
+              setSeconds(value);
+              setInitialSeconds(value);
+            } catch (e) {
+              setSeconds(0);
+              setInitialSeconds(0);
+            }
             setRunning(false);
           }
         },
@@ -82,22 +127,24 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.topTimerContainer}>
-        <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
+      {patidaAtivo && <View style={styles.topTimerContainer}> 
+        {!running && <TouchableOpacity style={styles.topPausePlayButton} onPress={handleTopPress}>
           <IconSymbol
             name={topRunning ? 'pause.fill' : 'play.fill'}
             size={32}
             color="#fff"
           />
-        </TouchableOpacity>
+        </TouchableOpacity>}
         <Text style={styles.topTimerText}>{formatTime(topSeconds)}</Text>
         <TouchableOpacity style={styles.topResetButton} onPress={handleTopReset}>
           <IconSymbol name="restart.circle.fill" size={32} color="#fff" />
         </TouchableOpacity>
-      </View>
+      </View>}
+
       <View style={styles.roundedBox}>
         <Text style={styles.timerText}>{seconds}</Text>
       </View>
+
       <TouchableOpacity
         style={[styles.button, { backgroundColor: running ? '#e20000ff' : '#43a047' }]}
         onPress={handlePress}
@@ -125,9 +172,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   topTimerText: {
-    fontSize: 48,
+    fontSize: 60,
     color: '#fff',
-    fontWeight: 'bold',
     marginRight: 16,
   },
   topPausePlayButton: {
